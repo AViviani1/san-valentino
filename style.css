@@ -23,13 +23,13 @@ body {
 }
 
 #question {
-    font-family: 'Sacramento', cursive;
+    font-family: 'Quicksand', sans-serif;
     font-size: clamp(28px, 8vw, 52px);
 }
 
 #success-message {
     display: none;
-    font-family: 'Sacramento', cursive;
+    font-family: 'Quicksand', sans-serif;
     font-size: clamp(24px, 6vw, 36px);
     color: #c41e3a;
     margin-top: 16px;
@@ -51,7 +51,7 @@ button {
     min-height: 44px;
     margin: 0 10px;
     font-size: 26px;
-    font-family: 'Sacramento', cursive;
+    font-family: 'Quicksand', sans-serif;
     background-color: #FB607F;
     color: white;
     border: none;
