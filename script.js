@@ -38,8 +38,8 @@ function initRunawayNoButton() {
 
         if (dist < RUNAWAY_THRESHOLD) {
             const angle = Math.atan2(mouseY - centerY, mouseX - centerX);
-            noButtonX += Math.cos(angle) * RUNAWAY_DISTANCE;
-            noButtonY += Math.sin(angle) * RUNAWAY_DISTANCE;
+            noButtonX -= Math.cos(angle) * RUNAWAY_DISTANCE;
+            noButtonY -= Math.sin(angle) * RUNAWAY_DISTANCE;
             const maxOffset = 100;
             noButtonX = Math.max(-maxOffset, Math.min(maxOffset, noButtonX));
             noButtonY = Math.max(-maxOffset, Math.min(maxOffset, noButtonY));
