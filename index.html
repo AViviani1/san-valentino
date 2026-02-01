@@ -9,15 +9,17 @@
 </head>
 <body>
     <div id="container">
-        <div id="image-container"></div> <!-- Container for displaying images -->
+        <div id="image-container"></div>
         <div id="text-container">
-            <div id="question">Will you be my valentine?</div> <!-- Question -->
+            <div id="question">Will you be my valentine?</div>
+            <div id="success-message" role="status" aria-live="polite" aria-atomic="true"></div>
             <div id="options">
-                <button id="yes-button" onclick="selectOption('yes')">Yes</button> <!-- Yes button -->
-                <button id="no-button" onclick="selectOption('no')">No</button> <!-- No button -->
+                <button id="yes-button" onclick="selectOption('yes')">Yes</button>
+                <button id="no-button" onclick="selectOption('no')">No</button>
             </div>
         </div>
     </div>
+    <div id="confetti-container" aria-hidden="true"></div>
 
     <script src="script.js"></script> <!-- Link to external JavaScript file -->
 </body>

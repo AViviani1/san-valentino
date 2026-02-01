@@ -1,80 +1,160 @@
 // script.js
 
+const NO_MESSAGES = ['No', 'You sure?', 'Really?', 'Please?', 'Pretty please?', "I'll be sad...", 'Last chance!', 'Okay fine...'];
+const RUNAWAY_THRESHOLD = 120;
+const RUNAWAY_DISTANCE = 80;
+const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+let noClickCount = 0;
+let noMessageIndex = 0;
+let noButtonX = 0;
+let noButtonY = 0;
+let noButtonScale = 1;
+
+// Preload cat-heart.gif on page load
+const catHeartPreload = new Image();
+catHeartPreload.src = 'cat-heart.gif';
+
+// Initialize runaway "No" button (skip if reduced motion)
+function initRunawayNoButton() {
+    if (REDUCED_MOTION) return;
+
+    const noButton = document.getElementById('no-button');
+    const optionsContainer = document.getElementById('options');
+
+    if (!noButton || !optionsContainer) return;
+
+    function applyNoButtonTransform() {
+        noButton.style.transform = `translate(${noButtonX}px, ${noButtonY}px) scale(${noButtonScale})`;
+    }
+
+    function updateNoButtonPosition(e) {
+        const rect = noButton.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const mouseX = e.clientX ?? (e.touches?.[0]?.clientX ?? 0);
+        const mouseY = e.clientY ?? (e.touches?.[0]?.clientY ?? 0);
+        const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
+
+        if (dist < RUNAWAY_THRESHOLD) {
+            const angle = Math.atan2(mouseY - centerY, mouseX - centerX);
+            noButtonX += Math.cos(angle) * RUNAWAY_DISTANCE;
+            noButtonY += Math.sin(angle) * RUNAWAY_DISTANCE;
+            const maxOffset = 100;
+            noButtonX = Math.max(-maxOffset, Math.min(maxOffset, noButtonX));
+            noButtonY = Math.max(-maxOffset, Math.min(maxOffset, noButtonY));
+            applyNoButtonTransform();
+        }
+    }
+
+    document.addEventListener('mousemove', updateNoButtonPosition);
+    document.addEventListener('touchmove', updateNoButtonPosition, { passive: true });
+}
+
 // Function to handle button click events
 function selectOption(option) {
-    // Check which option was clicked
     if (option === 'yes') {
-        // Flash rainbow colors
-        flashRainbowColors(function() {
-            document.getElementById('question').style.display = 'none'; // Hide the question
-            displayCatHeart(); // Display the cat-heart.gif
-        });
+        if (REDUCED_MOTION) {
+            onYesComplete();
+        } else {
+            flashRainbowColors(() => onYesComplete());
+        }
     } else if (option === 'no') {
-        // Change text on the "No" button to "You sure?"
-        document.getElementById('no-button').innerText = 'You sure?'; 
-        // Increase font size of "Yes" button
-        var yesButton = document.getElementById('yes-button');
-        var currentFontSize = window.getComputedStyle(yesButton).getPropertyValue('font-size');
-        var newSize = parseFloat(currentFontSize) * 2; // Increase font size by  * 2px
-        yesButton.style.fontSize = newSize + 'px';
+        noClickCount++;
+        const noButton = document.getElementById('no-button');
+        const yesButton = document.getElementById('yes-button');
+
+        noMessageIndex = Math.min(noMessageIndex + 1, NO_MESSAGES.length - 1);
+        noButton.innerText = NO_MESSAGES[noMessageIndex];
+
+        const currentFontSize = parseFloat(window.getComputedStyle(yesButton).getPropertyValue('font-size'));
+        yesButton.style.fontSize = currentFontSize * 2 + 'px';
+
+        noButtonScale = Math.max(0.5, noButtonScale * 0.85);
+        noButton.style.transform = REDUCED_MOTION
+            ? `scale(${noButtonScale})`
+            : `translate(${noButtonX}px, ${noButtonY}px) scale(${noButtonScale})`;
     } else {
-        // If neither "Yes" nor "No" was clicked, show an alert message
         alert('Invalid option!');
+    }
+}
+
+function onYesComplete() {
+    document.getElementById('question').style.display = 'none';
+    displayCatHeart();
+    showSuccessMessage();
+    if (!REDUCED_MOTION) {
+        triggerConfettiHearts();
+    }
+}
+
+function showSuccessMessage() {
+    const successEl = document.getElementById('success-message');
+    const message = noClickCount > 0
+        ? `After ${noClickCount} attempt${noClickCount > 1 ? 's' : ''}, she said yes! Yay! Best decision ever!`
+        : 'Yay! Best decision ever!';
+    successEl.textContent = message;
+    successEl.style.display = 'block';
+}
+
+function triggerConfettiHearts() {
+    const container = document.getElementById('confetti-container');
+    const heartChars = ['♥', '❤', '💕', '💗', '💖', '💘'];
+    const colors = ['#ff6b9d', '#ff0000', '#ff69b4', '#fb607f', '#ff1493', '#ff1744'];
+
+    for (let i = 0; i < 40; i++) {
+        const heart = document.createElement('span');
+        heart.className = 'confetti-heart';
+        heart.textContent = heartChars[Math.floor(Math.random() * heartChars.length)];
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.style.animationDelay = Math.random() * 0.5 + 's';
+        heart.style.animationDuration = 2 + Math.random() * 2 + 's';
+        heart.style.color = colors[Math.floor(Math.random() * colors.length)];
+        heart.style.setProperty('--drift', (Math.random() - 0.5) * 100 + 'px');
+        container.appendChild(heart);
+
+        setTimeout(() => heart.remove(), 4000);
     }
 }
 
 // Function to flash rainbow colors and then execute a callback function
 function flashRainbowColors(callback) {
-    var colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
-    var i = 0;
-    var interval = setInterval(function() {
+    const colors = ['#ff0000', '#ff7f00', '#ffff00', '#00ff00', '#0000ff', '#4b0082', '#9400d3'];
+    let i = 0;
+    const interval = setInterval(() => {
         document.body.style.backgroundColor = colors[i];
         i = (i + 1) % colors.length;
-    }, 200); // Change color every 200 milliseconds
-    setTimeout(function() {
+    }, 200);
+    setTimeout(() => {
         clearInterval(interval);
-        document.body.style.backgroundColor = ''; // Reset background color
-        if (callback) {
-            callback();
-        }
-    }, 2000); // Flash colors for 2 seconds
+        document.body.style.backgroundColor = '';
+        if (callback) callback();
+    }, 1500);
 }
 
 // Function to display the cat.gif initially
 function displayCat() {
-    // Get the container where the image will be displayed
-    var imageContainer = document.getElementById('image-container');
-    // Create a new Image element for the cat
-    var catImage = new Image();
-    // Set the source (file path) for the cat image
-    catImage.src = 'cat.gif'; // Assuming the cat image is named "cat.gif"
-    // Set alternative text for the image (for accessibility)
+    const imageContainer = document.getElementById('image-container');
+    const catImage = new Image();
+    catImage.src = 'cat.gif';
     catImage.alt = 'Cat';
-    // When the cat image is fully loaded, add it to the image container
-    catImage.onload = function() {
-        imageContainer.appendChild(catImage);
-    };
+    catImage.onload = () => imageContainer.appendChild(catImage);
 }
 
 // Function to display the cat-heart.gif
 function displayCatHeart() {
-    // Clear existing content in the image container
-    document.getElementById('image-container').innerHTML = '';
-    // Get the container where the image will be displayed
-    var imageContainer = document.getElementById('image-container');
-    // Create a new Image element for the cat-heart
-    var catHeartImage = new Image();
-    // Set the source (file path) for the cat-heart image
-    catHeartImage.src = 'cat-heart.gif'; // Assuming the cat-heart image is named "cat-heart.gif"
-    // Set alternative text for the image (for accessibility)
+    const imageContainer = document.getElementById('image-container');
+    imageContainer.innerHTML = '';
+    const catHeartImage = new Image();
+    catHeartImage.src = 'cat-heart.gif';
     catHeartImage.alt = 'Cat Heart';
-    // When the cat-heart image is fully loaded, add it to the image container
-    catHeartImage.onload = function() {
+    catHeartImage.className = 'cat-heart-fade-in';
+    catHeartImage.onload = () => {
         imageContainer.appendChild(catHeartImage);
-        // Hide the options container
         document.getElementById('options').style.display = 'none';
     };
 }
 
 // Display the cat.gif initially
 displayCat();
+initRunawayNoButton();
