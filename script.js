@@ -1,6 +1,6 @@
 // script.js
 
-const NO_MESSAGES = ['No', 'You sure?', 'Really?', 'Please?', 'Pretty please?', "I'll be sad...", 'Last chance!', 'Okay fine...'];
+const NO_MESSAGES = ['No', 'Sei sicura?', 'Davvero?', 'Per favore?', 'Per piacere?', 'Mi dispiace...', 'Ultima possibilità!', 'Va bene...'];
 const RUNAWAY_THRESHOLD = 120;
 const RUNAWAY_DISTANCE = 80;
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -75,7 +75,7 @@ function selectOption(option) {
             ? `scale(${noButtonScale})`
             : `translate(${noButtonX}px, ${noButtonY}px) scale(${noButtonScale})`;
     } else {
-        alert('Invalid option!');
+        alert('Opzione non valida!');
     }
 }
 
@@ -90,10 +90,7 @@ function onYesComplete() {
 
 function showSuccessMessage() {
     const successEl = document.getElementById('success-message');
-    const message = noClickCount > 0
-        ? `After ${noClickCount} attempt${noClickCount > 1 ? 's' : ''}, she said yes! Yay! Best decision ever!`
-        : 'Yay! Best decision ever!';
-    successEl.textContent = message;
+    successEl.textContent = 'Siii evvivaaaaaaa';
     successEl.style.display = 'block';
 }
 
