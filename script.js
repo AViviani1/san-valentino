@@ -1,19 +1,33 @@
 // script.js
 
-const NO_MESSAGES = ['No', 'Sei sicura?', 'Davvero?', 'Per favore?', 'Per piacere?', 'Mi dispiace...', 'Ultima possibilità!', 'Va bene...'];
-const RUNAWAY_THRESHOLD = 120;
-const RUNAWAY_DISTANCE = 80;
+const NO_MESSAGES = ['No', 'Sei sicura?', 'Davvero?', 'Per favore?', 'Ti stai impegnando eh? 😒', 'Ultima possibilità'];
+const RUNAWAY_THRESHOLD = 100;
+const RUNAWAY_DISTANCE = 50;
+const RUNAWAY_COOLDOWN_MS = 135;
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Rettangolo invisibile al centro (il No può muoversi solo qui): larghezza e altezza in frazione del viewport
+const BOUNDS_WIDTH_RATIO = 0.5;
+const BOUNDS_HEIGHT_RATIO = 0.5;
 
 let noClickCount = 0;
 let noMessageIndex = 0;
 let noButtonX = 0;
 let noButtonY = 0;
 let noButtonScale = 1;
+let lastRunawayTime = 0;
 
-// Preload cat-heart.gif on page load
+// Preload images on page load
 const catHeartPreload = new Image();
 catHeartPreload.src = 'cat-heart.gif';
+const disappointedPreload = new Image();
+disappointedPreload.src = 'disappointed.gif';
+const sadCatPreload = new Image();
+sadCatPreload.src = 'sad-cat.jpg';
+const sadCatSmallPreload = new Image();
+sadCatSmallPreload.src = 'sad-cat-smal.jpg';
+const sadCatFacePreload = new Image();
+sadCatFacePreload.src = 'sad-cat-face.jpg';
 
 // Initialize runaway "No" button (skip if reduced motion)
 function initRunawayNoButton() {
@@ -35,14 +49,23 @@ function initRunawayNoButton() {
         const mouseX = e.clientX ?? (e.touches?.[0]?.clientX ?? 0);
         const mouseY = e.clientY ?? (e.touches?.[0]?.clientY ?? 0);
         const dist = Math.hypot(mouseX - centerX, mouseY - centerY);
+        const now = Date.now();
 
-        if (dist < RUNAWAY_THRESHOLD) {
+        if (dist < RUNAWAY_THRESHOLD && now - lastRunawayTime >= RUNAWAY_COOLDOWN_MS) {
+            lastRunawayTime = now;
             const angle = Math.atan2(mouseY - centerY, mouseX - centerX);
             noButtonX -= Math.cos(angle) * RUNAWAY_DISTANCE;
             noButtonY -= Math.sin(angle) * RUNAWAY_DISTANCE;
-            const maxOffset = 100;
-            noButtonX = Math.max(-maxOffset, Math.min(maxOffset, noButtonX));
-            noButtonY = Math.max(-maxOffset, Math.min(maxOffset, noButtonY));
+
+            const boxW = window.innerWidth * BOUNDS_WIDTH_RATIO;
+            const boxH = window.innerHeight * BOUNDS_HEIGHT_RATIO;
+            const boxLeft = (window.innerWidth - boxW) / 2;
+            const boxTop = (window.innerHeight - boxH) / 2;
+            const baseLeft = rect.left - noButtonX;
+            const baseTop = rect.top - noButtonY;
+
+            noButtonX = Math.max(boxLeft - baseLeft, Math.min(boxLeft + boxW - rect.width - baseLeft, noButtonX));
+            noButtonY = Math.max(boxTop - baseTop, Math.min(boxTop + boxH - rect.height - baseTop, noButtonY));
             applyNoButtonTransform();
         }
     }
@@ -74,12 +97,15 @@ function selectOption(option) {
         noButton.style.transform = REDUCED_MOTION
             ? `scale(${noButtonScale})`
             : `translate(${noButtonX}px, ${noButtonY}px) scale(${noButtonScale})`;
+        
+        updateImageOnNo();
     } else {
         alert('Opzione non valida!');
     }
 }
 
 function onYesComplete() {
+    document.getElementById('title').style.display = 'none';
     document.getElementById('question').style.display = 'none';
     displayCatHeart();
     showSuccessMessage();
@@ -92,6 +118,10 @@ function showSuccessMessage() {
     const successEl = document.getElementById('success-message');
     successEl.textContent = 'Siii evvivaaaaaaa';
     successEl.style.display = 'block';
+    
+    const dateEl = document.getElementById('date-message');
+    dateEl.textContent = 'Ci vediamo il 14 🥰';
+    dateEl.style.display = 'block';
 }
 
 function triggerConfettiHearts() {
@@ -129,13 +159,36 @@ function flashRainbowColors(callback) {
     }, 1500);
 }
 
-// Function to display the cat.gif initially
+// Function to display the cat-rose.gif initially
 function displayCat() {
     const imageContainer = document.getElementById('image-container');
     const catImage = new Image();
-    catImage.src = 'cat.gif';
-    catImage.alt = 'Cat';
+    catImage.src = 'cat-rose.gif';
+    catImage.alt = 'Cat with rose';
     catImage.onload = () => imageContainer.appendChild(catImage);
+}
+
+// Function to update image when "No" is clicked
+function updateImageOnNo() {
+    const imageContainer = document.getElementById('image-container');
+    imageContainer.innerHTML = '';
+    const newImage = new Image();
+    
+    if (noClickCount === 1) {
+        newImage.src = 'disappointed.gif';
+        newImage.alt = 'Disappointed cat';
+    } else if (noClickCount === 2) {
+        newImage.src = 'sad-cat.jpg';
+        newImage.alt = 'Sad cat';
+    } else if (noClickCount === 3) {
+        newImage.src = 'sad-cat-smal.jpg';
+        newImage.alt = 'Sad cat small';
+    } else if (noClickCount >= 4) {
+        newImage.src = 'sad-cat-face.jpg';
+        newImage.alt = 'Sad cat face';
+    }
+    
+    newImage.onload = () => imageContainer.appendChild(newImage);
 }
 
 // Function to display the cat-heart.gif
@@ -152,6 +205,6 @@ function displayCatHeart() {
     };
 }
 
-// Display the cat.gif initially
+// Display the cat-rose.gif initially
 displayCat();
 initRunawayNoButton();

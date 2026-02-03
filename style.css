@@ -15,16 +15,38 @@ body {
     height: 100vh;
 }
 
+#title {
+    font-family: 'Quicksand', sans-serif;
+    font-size: clamp(32px, 9vw, 64px);
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #c41e3a;
+}
+
 #image-container {
-    min-height: 200px;
+    min-height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
+    background-color: #FADADD;
+}
+
+#image-container img {
+    max-width: min(320px, 80vw);
+    max-height: 200px;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    background-color: #FADADD;
+    display: block;
 }
 
 #question {
     font-family: 'Quicksand', sans-serif;
-    font-size: clamp(28px, 8vw, 52px);
+    font-size: clamp(22px, 6vw, 38px);
+    font-weight: 400;
+    margin-top: 12px;
+    color: #333;
 }
 
 #success-message {
@@ -33,6 +55,14 @@ body {
     font-size: clamp(24px, 6vw, 36px);
     color: #c41e3a;
     margin-top: 16px;
+}
+
+#date-message {
+    display: none;
+    font-family: 'Quicksand', sans-serif;
+    font-size: clamp(20px, 5vw, 28px);
+    color: #c41e3a;
+    margin-top: 12px;
 }
 
 #options {
