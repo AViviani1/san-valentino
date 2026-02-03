@@ -116,7 +116,7 @@ function onYesComplete() {
 
 function showSuccessMessage() {
     const successEl = document.getElementById('success-message');
-    successEl.textContent = 'Siii evvivaaaaaaa';
+    successEl.textContent = 'Siii evvivaaaaaaa 🧡💛';
     successEl.style.display = 'block';
     
     const dateEl = document.getElementById('date-message');
